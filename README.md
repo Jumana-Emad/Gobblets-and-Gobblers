@@ -33,5 +33,3 @@ Explore sophisticated game-playing algorithms, including:
 
 ### Heuristics
 Incorporate heuristic evaluations into your gameplay, providing intelligent decision-making. The repository encourages the use of at least one heuristic, with comprehensive documentation on heuristic descriptions and approximations.
-
-Feel free to contribute, experiment with various languages/frameworks, and enhance the project with additional heuristics. Let the strategic battles begin!
