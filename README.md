@@ -11,7 +11,7 @@ Gobblet is played on a 4x4 grid, challenging players to create stacks of four pi
 - 16-square playing board
 - 12 white Gobblets
 - 12 black Gobblets
-- [Game rules]([RULES_OF_THE_GAME.md](https://www.boardspace.net/gobblet/english/gobblet_rules.pdf)): Detailed instructions on how to play the game.
+- [Game Rules](https://www.boardspace.net/gobblet/english/gobblet_rules.pdf): Detailed instructions on how to play the game.
 
 ### [Watch the Gameplay](https://www.youtube.com/watch?v=aSaAjQY8_b0)
 
