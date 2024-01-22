@@ -6,7 +6,7 @@ from tkinter import messagebox
 from tkinter import PhotoImage
 import pygame
 from pygame.locals import *
-
+import random
 class GameDetails:
     def __init__(self,game_mode,player1_name, player2_name , level, color):
         self.game_mode = game_mode
@@ -146,8 +146,11 @@ class PlayervsComputer:
 
         self.b1 = tk.Button(self.root, text=" Easy", font=('normal', 18), background="#f36523", activebackground="#f36523", width=15, height=3, command=lambda: self.changebg(1))
         self.b2 = tk.Button(self.root, text="Hard", font=('normal', 18), background="#13c3f4", activebackground="#f36523", width=15, height=3, command=lambda: self.changebg(2))
+        self.b6 = tk.Button(self.root, text="Impossible", font=('normal', 18), background="#13c3f4", activebackground="#f36523", width=15, height=3, command=lambda: self.changebg(5))
+        
         self.b1.grid(row= 1,column=1)
-        self.b2.grid(row=1,column = 2) 
+        self.b2.grid(row=1,column = 2)
+        self.b6.grid(row=1,column = 3, padx = 10) 
         
         tk.Label(self.root, text="Your Color", width=18, height=4, font=('Helvetica', 18), background='#ADD8E6').grid(row=2, column=0, padx=10)
 
@@ -168,11 +171,13 @@ class PlayervsComputer:
         if a == 1:
             self.b1.config(background= "#f36523")
             self.b2.config(background="#13c3f4")
+            self.b6.config(background="#13c3f4")
             self.level = "Easy"
 
         if a == 2:
             self.b2.config(background= "#f36523")
             self.b1.config(background="#13c3f4")
+            self.b6.config(background="#13c3f4")
             self.level = "Hard"    
 
         if a == 3:
@@ -185,7 +190,12 @@ class PlayervsComputer:
             self.b3.config(background="#000000")
             self.color = (255,255,255)
         
-        #print(self.level,self.color)        
+        if a == 5:
+            self.b6.config(background= "#f36523")
+            self.b2.config(background="#13c3f4")
+            self.b1.config(background="#13c3f4")
+            self.level = "Impossible"  
+        #print(self.level,self.color)          
 
 
     def new_window(self):
@@ -204,6 +214,53 @@ class PlayervsComputer:
     def run(self):
         self.root.mainloop()
 
+class Easy_Bot:
+    def __init__(self, player_number, game):
+        self.player_number = player_number
+        self.game = game
+
+    def select_gobbler(self):
+        if self.player_number == 0:
+            available_gobblers = [g for g in self.game.left_gobblets if g.is_on_top]
+        else:
+            available_gobblers = [g for g in self.game.right_gobblets if g.is_on_top]
+
+        random_idx = random.randint(0, len(available_gobblers) - 1)
+        #print(random_idx, available_gobblers)
+        available_gobblers[random_idx].color = (243, 101, 35) if self.player_number == 0 else (19, 195, 244)
+        return available_gobblers[random_idx]
+
+    def select_board_position(self):
+        return random.randint(0, 15)
+
+class Medium_Bot:
+    def __init__(self,player_number,name,game):
+        super().__init__(player_number, name, game)
+        self.game=game
+        self.gobbler = ""
+        self.position = ""
+    def play(self):
+        # game=Game()
+        result, self.gobbler, self.position=self.game.minimax(self.game.board,2,True,True)
+        print(self.game.Draw_board())
+    def select_gobbler(self):
+        print("Gobbler: ", self.gobbler)
+        return self.gobbler
+    def select_board_position(self):
+        print("Position: ", self.position)
+        return self.position
+        
+class Hard_Bot:
+    def __init__(self,player_number,name,game):
+        super().__init__(player_number, name, game)
+        self.play()
+        # self.gobbler
+        # self.position
+    def play(self):
+        game=Game()
+        result, self.gobbler, self.position=game.minimax(game.board,6,True,True)
+        print(game.Draw_board())
+
 class Gobbler_piece:
     def __init__(self, player, piece_no,color,radius,position):
         self.player = player  # integer 0-1
@@ -214,17 +271,13 @@ class Gobbler_piece:
         self.board_position_previous = None  # so that it can be placed back where it came from
         self.is_on_top = True
         self.color = color
-        self.visible = True
         self.radius = radius
         self.position = position
         self.under = None
 
     def draw(self, screen):
-        if self.visible:
-            pygame.draw.circle(screen, self.color, self.position, self.radius)
-
-    def toggle_visibility(self):
-        self.visible = not self.visible    
+        pygame.draw.circle(screen, self.color, self.position, self.radius)
+  
 
 class Game:
     
@@ -278,8 +331,25 @@ class Game:
             [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15],
             [0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15],[0,5,10,15],[3,6,9,12]
         ]
-
-    def on_button_click(self, row, col):
+    def retry_comp(self):
+        print("retrying")
+        if self.game_details.level == "Easy":
+            index = Easy_Bot(self.current_player,self).select_board_position()
+            clicked_row = index //4
+            clicked_col = index %4
+            self.move_pos(clicked_row,clicked_col)
+        elif self.game_details.level == "Hard":
+            index = Medium_Bot().select_board_position()
+            clicked_row = index //4
+            clicked_col = index %4
+            self.move_pos(clicked_row,clicked_col)
+        elif self.game_details.level == "Impossible":
+            index = Hard_Bot().select_board_position()
+            clicked_row = index //4
+            clicked_col = index %4
+            self.move_pos(clicked_row,clicked_col)
+                                
+    def move_pos(self, row, col):
         index = 4 * row + col
         for i in range(12):
             if(self.current_player == 0):
@@ -321,10 +391,16 @@ class Game:
                                     self.switch_player()  
                                     break
                             else:
-                                self.set_error("*Can't gobble a bigger Gobblet")
+                                if self.game_details.game_mode == "pvc" and self.game_details.player2_color == (0,0,0):
+                                    self.retry_comp()
+                                else:        
+                                    self.set_error("*Can't gobble a bigger Gobblet")
 
                         else:
-                            self.set_error("*new gobblet must place on an empty square")
+                            if self.game_details.game_mode == "pvc" and self.game_details.player2_color == (0,0,0):
+                                        self.retry_comp()
+                            else: 
+                                self.set_error("*new gobblet must place on an empty square")
                     else:
                             if self.board[index] == " ":
                                 self.clicked = False
@@ -355,7 +431,10 @@ class Game:
                                     self.switch_player()  
                                     break
                             else:
-                                self.set_error("*Can't gobble a bigger Gobblet")
+                                if self.game_details.game_mode == "pvc" and self.game_details.player2_color == (0,0,0):
+                                        self.retry_comp()
+                                else: 
+                                    self.set_error("*Can't gobble a bigger Gobblet")
                                
             else:                    
                 if self.right_gobblets[i].color == self.right_color:
@@ -398,9 +477,15 @@ class Game:
                                 self.switch_player()
                                 break                    
                             else:
-                                self.set_error("*Can't gobble a bigger Gobblet")
+                                if self.game_details.game_mode == "pvc" and self.game_details.player2_color == (255,255,255):
+                                        self.retry_comp()
+                                else: 
+                                    self.set_error("*Can't gobble a bigger Gobblet")
                         else:
-                            self.set_error("*new gobblet must place on an empty square")
+                            if self.game_details.game_mode == "pvc" and self.game_details.player2_color == (255,255,255):
+                                        self.retry_comp()
+                            else: 
+                                self.set_error("*new gobblet must place on an empty square")
                     else:
                         if self.board[index] == " ":
                                 self.clicked = False
@@ -431,7 +516,10 @@ class Game:
                                 self.switch_player()
                                 break                    
                         else:
-                            self.set_error("*Can't gobble a bigger Gobblet")
+                            if self.game_details.game_mode == "pvc" and self.game_details.player2_color == (255,255,255):
+                                        self.retry_comp()
+                            else: 
+                                self.set_error("*Can't gobble a bigger Gobblet")
         
             
         if self._check_for_winner()!= None:
@@ -439,12 +527,6 @@ class Game:
             #print(f"Player {me} wins!")
             self.Celebrate()
 
-
-            # elif " " not in self.board:
-            #     print("It's a tie!")
-            #     self.reset_game()
-            # else:
-            #     self.switch_player()
     def check_possible_win(self) -> bool:
         """
         checks if there is a possible win next turn
@@ -470,7 +552,7 @@ class Game:
             # if there is only one non-None unique value, then
             # we have a winner
             unique_values = list(set(result_to_check))
-            print(result_to_check, unique_values)
+            #print(result_to_check, unique_values)
             if len(unique_values) == 1 and len(result_to_check) == 3:
                 if(unique_values[0] != self.current_player):
                     return True
@@ -548,6 +630,9 @@ class Game:
             #self.nextTurn = self.game_details.player1_name if self.game_details.player1_color == (255,255,255) else self.game_details.player1_name
             self.text_color =  self.right_color
             self.text_surface= self.pfont.render(self.nextTurn + "'s Turn", True, self.text_color)
+        if self.game_details.game_mode == "pvc":
+            if (self.game_details.player2_color == (0,0,0) and self.current_player == 0) or (self.game_details.player2_color == (255,255,255) and self.current_player == 1):   
+                    self.Bot_turn()
 
     def reset_game(self):
         pygame.quit()
@@ -557,6 +642,13 @@ class Game:
         #self.board = [" " for _ in range(16)]
     # Main game loop
     # running = True
+    
+    def check_clicked(self):
+        for i in range(12):
+            if(self.current_player == 0 and self.left_gobblets[i].color == self.left_color):
+                self.clicked = True
+            elif (self.current_player == 1 and self.right_gobblets[i].color == self.right_color):
+                self.clicked = True
 
     def generate_gobblets(self):
         for i in range(3):
@@ -577,10 +669,52 @@ class Game:
             if j%4 != 3:
                 self.left_gobblets[j].under = self.left_gobblets[j+1]   
                 self.right_gobblets[j].under = self.right_gobblets[j+1]        
-
+    
+    def Bot_turn(self):
+        if(self.game_details.game_mode == "pvc" ):
+            if (self.game_details.player2_color == (0,0,0) and self.current_player == 0) or (self.game_details.player2_color == (255,255,255) and self.current_player == 1):
+                if(self.game_details.level == "Easy"):
+                    bot = Easy_Bot(self.current_player,self)
+                elif(self.game_details.level == "Hard"):
+                    bot = Medium_Bot(self.current_player,self)
+                elif(self.game_details.level == "Impossible"):
+                    bot = Hard_Bot(self.current_player,self)
+                chosen_piece = bot.select_gobbler()
+                self.clicked = True
+                chosen_index = bot.select_board_position()
+        
+            while (self.game_details.player2_color == (0,0,0) and self.current_player == 0) or (self.game_details.player2_color == (255,255,255) and self.current_player == 1):                
+                    for i in range(12):
+                        if(self.current_player == 0):
+                            if (self.left_gobblets[i].is_on_top == True and self.left_gobblets[i].color == self.left_color and self.clicked):
+                                clicked_row = chosen_index //4
+                                clicked_col = chosen_index %4
+                                # print(clicked_row,clicked_col)
+                                #print(clicked_row,clicked_col)
+                                if (self.left_gobblets[i].position[1]//100 == clicked_row and (self.left_gobblets[i].position[0]-100)//100 == clicked_col):
+                                    #print("Can't move in the same position")
+                                    #self.set_error("*Can't move in the same position")
+                                    chosen_index = bot.select_board_position()
+                                else:
+                                    #print(chosen_index,clicked_row,clicked_col)
+                                    self.move_pos(clicked_row, clicked_col) 
+                                    break
+                        elif(self.current_player == 1):
+                                    if (self.right_gobblets[i].is_on_top == True and self.right_gobblets[i].color == self.right_color and self.clicked):
+                                        #print("d5lt3")
+                                        clicked_row = chosen_index //4
+                                        clicked_col = chosen_index %4
+                                        # print(clicked_row,clicked_col)
+                                        if (self.right_gobblets[i].position[1]//100 == clicked_row and (self.right_gobblets[i].position[0]-100)//100 == clicked_col):
+                                            #print("Can't move in the same position")
+                                            #self.set_error("*Can't move in the same position")
+                                            chosen_index = bot.select_board_position()
+                                        else:
+                                            self.move_pos(clicked_row, clicked_col) 
+                                        break
     def run(self):
-       
         self.generate_gobblets()
+        self.Bot_turn()
         while True:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -598,11 +732,12 @@ class Game:
                     mouseX, mouseY = event.pos
                     #print(event.pos)
                     #print(self.clicked)
-                    for i in range(12):
-                        if(self.current_player == 0 and self.left_gobblets[i].color == self.left_color):
-                            self.clicked = True
-                        elif (self.current_player == 1 and self.right_gobblets[i].color == self.right_color):
-                            self.clicked = True
+                    self.check_clicked()
+                    # for i in range(12):
+                    #     if(self.current_player == 0 and self.left_gobblets[i].color == self.left_color):
+                    #         self.clicked = True
+                    #     elif (self.current_player == 1 and self.right_gobblets[i].color == self.right_color):
+                    #         self.clicked = True
                     for i in range(12):            
                             if (self.current_player == 0 and self.left_gobblets[i].is_on_top == True and  mouseY - 40 < self.left_gobblets[i].position[1] < mouseY + 40 and mouseX - 35 < self.left_gobblets[i].position[0] < mouseX + 35 ):
                                 #print("yay")
@@ -651,7 +786,7 @@ class Game:
                                             #print("Can't move in the same position")
                                             self.set_error("*Can't move in the same position")
                                         else:
-                                            self.on_button_click(clicked_row, clicked_col) 
+                                            self.move_pos(clicked_row, clicked_col) 
                                             break
                                 elif(self.current_player == 1):
                                     if (self.right_gobblets[i].is_on_top == True and self.right_gobblets[i].color == self.right_color and self.clicked):
@@ -663,11 +798,8 @@ class Game:
                                             #print("Can't move in the same position")
                                             self.set_error("*Can't move in the same position")
                                         else:
-                                            self.on_button_click(clicked_row, clicked_col) 
+                                            self.move_pos(clicked_row, clicked_col) 
                                         break
-
-
-        
 
             self.screen.fill((173,216,230))
             for i in range(11, -1, -1):
