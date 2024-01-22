@@ -60,7 +60,7 @@ class ChooseWindow:
             self.root.destroy()
             self.new_window(PlayervsComputer)
 
-        print(f"Selected Game Mode: {mode}")
+        #print(f"Selected Game Mode: {mode}")
 
     def new_window(self, _class):
         new_window = _class()
@@ -106,10 +106,18 @@ class PlayervsPlayer:
         text = self.e1.get()
         text2 = self.e2.get()
         if text and text2:
-            self.root.destroy()
-            game_details = GameDetails("pvp", text, text2, 0 , (0,0,0))
-            new_window = Game(game_details)
-            new_window.run()
+            if text == text2:
+                messagebox.showinfo("Same Name", 'Player names cannot be identical.')
+            elif len(text) <= 12:
+                if len(text2) <= 12:
+                    self.root.destroy()
+                    game_details = GameDetails("pvp", text, text2, 0 , (0,0,0))
+                    new_window = Game(game_details)
+                    new_window.run()
+                else:
+                    messagebox.showinfo("Name length", "White player's Name can be at most 12 letters long")               
+            else:
+                messagebox.showinfo("Name length", "Black player's Name can be at most 12 letters long")       
         else:
             messagebox.showinfo("Name", "Enter Names First")
 
@@ -177,16 +185,19 @@ class PlayervsComputer:
             self.b3.config(background="#000000")
             self.color = (255,255,255)
         
-        print(self.level,self.color)        
+        #print(self.level,self.color)        
 
 
     def new_window(self):
         text = self.e1.get()
         if text:
-            self.root.destroy()
-            game_details = GameDetails("pvc", text, "", self.level , self.color)
-            new_window = Game(game_details)
-            new_window.run()
+            if len(text) <= 12:
+                self.root.destroy()
+                game_details = GameDetails("pvc", text, "", self.level , self.color)
+                new_window = Game(game_details)
+                new_window.run()
+            else:
+                messagebox.showinfo("Name length", "Name can be at most 12 letters long")   
         else:
             messagebox.showinfo("Name", "Enter Name First")
 
@@ -220,7 +231,7 @@ class Game:
     def __init__(self, game_details):
         self.game_details = game_details
         pygame.init()
-        print(game_details.game_mode, game_details.player1_name , game_details.player2_name, game_details.player1_color, game_details.level)
+        #print(game_details.game_mode, game_details.player1_name , game_details.player2_name, game_details.player1_color, game_details.level)
         self.left_color = (243, 101, 35)
         self.right_color = (19, 195, 244)
         self.left_gobblets = []
@@ -240,7 +251,7 @@ class Game:
         self.clock = pygame.time.Clock()
 
         # Create a text surface
-        print(self.game_details.player1_color)
+        #print(self.game_details.player1_color)
         self.nextTurn = self.game_details.player1_name if self.game_details.player1_color == (0,0,0) else self.game_details.player2_name
         self.text_color = self.left_color
         self.text_surface = self.pfont.render(self.nextTurn + "'s Turn", True, self.text_color)  # White color
@@ -255,7 +266,7 @@ class Game:
         # Set up fonts and text for the pop-up window
         self.popup_font = pygame.font.Font(None, 28)
         self.popup_message = self.popup_font.render("Congratulations! You Won!", True, (0, 255, 0))
-        self.popup_message_rect = self.popup_message.get_rect(center=(popup_width // 2, popup_height // 3))
+        self.popup_message_rect = self.popup_message.get_rect(center=(140, popup_height // 3))
 
         self.play_again_button = pygame.Rect(popup_width // 4, 2 * popup_height // 3, popup_width // 2, popup_height // 4)
 
@@ -293,6 +304,25 @@ class Game:
                                 self.board[index] = self.left_gobblets[i] 
                                 self.switch_player()       
                                 break
+                        elif self.check_possible_win() == True:
+                            if self.board[index].size > self.left_gobblets[i].size:
+                                    self.clicked = False
+                                    self.left_gobblets[i].board_position = index
+                                    self.left_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                    self.left_gobblets[i].color = (0,0,0) 
+                                    if(self.left_gobblets[i].under != None):
+                                        self.left_gobblets[i].under.is_on_top = True
+                                        self.left_gobblets[i].under = None
+                                    temp = self.board[index]
+                                    self.left_gobblets[i].under = temp
+                                    self.left_gobblets[i].is_on_top = True
+                                    self.left_gobblets[i].under.is_on_top = False     
+                                    self.board[index] = self.left_gobblets[i]
+                                    self.switch_player()  
+                                    break
+                            else:
+                                self.set_error("*Can't gobble a bigger Gobblet")
+
                         else:
                             self.set_error("*new gobblet must place on an empty square")
                     else:
@@ -329,6 +359,7 @@ class Game:
                                
             else:                    
                 if self.right_gobblets[i].color == self.right_color:
+
                     if self.right_gobblets[i].board_position != None:
                         PlacedIndex = self.right_gobblets[i].board_position
                         if(self.right_gobblets[i].under != None):
@@ -350,6 +381,24 @@ class Game:
                                 self.board[index] = self.right_gobblets[i]
                                 self.switch_player()
                                 break
+                        elif self.check_possible_win() == True:
+                            if self.board[index].size > self.right_gobblets[i].size:
+                                self.clicked = False
+                                self.right_gobblets[i].board_position = index 
+                                self.right_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.right_gobblets[i].color = (255,255,255) 
+                                if(self.right_gobblets[i].under != None):
+                                    self.right_gobblets[i].under.is_on_top = True
+                                    self.right_gobblets[i].under = None
+                                temp = self.board[index]
+                                self.right_gobblets[i].under = temp
+                                self.right_gobblets[i].is_on_top = True
+                                self.right_gobblets[i].under.is_on_top = False
+                                self.board[index] = self.right_gobblets[i]
+                                self.switch_player()
+                                break                    
+                            else:
+                                self.set_error("*Can't gobble a bigger Gobblet")
                         else:
                             self.set_error("*new gobblet must place on an empty square")
                     else:
@@ -387,8 +436,45 @@ class Game:
             
         if self._check_for_winner()!= None:
             me = 0 if self.current_player == 1 else 1
-            print(f"Player {me} wins!")
+            #print(f"Player {me} wins!")
             self.Celebrate()
+
+
+            # elif " " not in self.board:
+            #     print("It's a tie!")
+            #     self.reset_game()
+            # else:
+            #     self.switch_player()
+    def check_possible_win(self) -> bool:
+        """
+        checks if there is a possible win next turn
+        if so, returns True
+        if not, returns False
+        """
+        # check all of the winning combinations for a winner
+        for combo in self.winning_combinations:
+            # initialize a list to keep track of the
+            # owner of each piece
+            result_to_check = []
+            #print("combo" )
+            for position in combo:
+               # print(position)
+                if self.board[position] != " ":
+                    # record the player of the current piece in a list
+                    #print("checking", me)
+                    result_to_check.append(self.board[position].player)
+
+                # else:
+                #     result_to_check.append(None)
+            #print(result_to_check)        
+            # if there is only one non-None unique value, then
+            # we have a winner
+            unique_values = list(set(result_to_check))
+            print(result_to_check, unique_values)
+            if len(unique_values) == 1 and len(result_to_check) == 3:
+                if(unique_values[0] != self.current_player):
+                    return True
+        return None
 
     def _check_for_winner(self) -> int:
         """
@@ -396,20 +482,23 @@ class Game:
         if so, returns winner (int)
         if not, returns None
         """
-        me = 0 if self.current_player == 1 else 1 
+        #me = 0 if self.current_player == 1 else 1 
         # check all of the winning combinations for a winner
         for combo in self.winning_combinations:
             # initialize a list to keep track of the
             # owner of each piece
             result_to_check = []
+            #print("combo" )
             for position in combo:
                # print(position)
                 if self.board[position] != " ":
                     # record the player of the current piece in a list
+                    #print("checking", me)
                     result_to_check.append(self.board[position].player)
 
                 else:
-                    result_to_check.append(None)       
+                    result_to_check.append(None)
+            #print(result_to_check)        
             # if there is only one non-None unique value, then
             # we have a winner
             unique_values = list(set(result_to_check))
@@ -437,7 +526,7 @@ class Game:
 
     def set_error(self,error):
             self.error = error
-            print(self.error)
+            #print(self.error)
             # Set up timing variables
             self.fade_start_time = pygame.time.get_ticks()
             self.fade_duration = 2000  # 2 seconds
@@ -464,9 +553,11 @@ class Game:
         pygame.quit()
         ChooseWindow().run()
         quit()
-
+        #self.current_player = "X"
+        #self.board = [" " for _ in range(16)]
     # Main game loop
     # running = True
+
     def generate_gobblets(self):
         for i in range(3):
             for j in range(4):   
@@ -498,15 +589,15 @@ class Game:
                     quit()
                 elif self.win_win and event.type == MOUSEBUTTONDOWN:
                     mouseX, mouseY = event.pos
-                    print(self.play_again_button.center[1], mouseY ,self.play_again_button.center[0], mouseX)
+                    #print(self.play_again_button.center[1], mouseY ,self.play_again_button.center[0], mouseX)
                     if  200 <= mouseX <= 380 and 290 <= mouseY <= 320:
                         self.reset_game()
-                        print("Play Again clicked")
+                        #print("Play Again clicked")
                         self.win_win = False    
                 elif event.type == MOUSEBUTTONDOWN:
                     mouseX, mouseY = event.pos
-                    print(event.pos)
-                    print(self.clicked)
+                    #print(event.pos)
+                    #print(self.clicked)
                     for i in range(12):
                         if(self.current_player == 0 and self.left_gobblets[i].color == self.left_color):
                             self.clicked = True
@@ -514,49 +605,62 @@ class Game:
                             self.clicked = True
                     for i in range(12):            
                             if (self.current_player == 0 and self.left_gobblets[i].is_on_top == True and  mouseY - 40 < self.left_gobblets[i].position[1] < mouseY + 40 and mouseX - 35 < self.left_gobblets[i].position[0] < mouseX + 35 ):
-                                print("yay")
+                                #print("yay")
                                 if not self.clicked and self.current_player == self.left_gobblets[i].player:
-                                    print("fo2")
+                                    #print("fo2")
                                     # self.left_gobblets[i].color = (0,0,255)
                                     self.left_gobblets[i].color = self.left_color
                                     #print(self.left_gobblets[i].color)
+                                    if self.left_gobblets[i].under != None and self.left_gobblets[i].under.player != self.left_gobblets[i].player:
+                                            temp = self.board.copy()
+                                            self.board[self.left_gobblets[i].board_position] = self.left_gobblets[i].under
+                                            if self._check_for_winner() == 1:
+                                                self.set_error("*Watchout white gobblet underneath")                     
+                                                self.board = temp.copy()
                                 break
                             elif(self.current_player == 1 and self.right_gobblets[i].is_on_top == True and  mouseY - 40 < self.right_gobblets[i].position[1] < mouseY + 40 and mouseX - 35 < self.right_gobblets[i].position[0] < mouseX + 35 ):
                                 #print("yay")
                                 if not self.clicked and self.current_player == self.right_gobblets[i].player:
-                                    print("nos")
+                                    #print("nos")
                                     self.right_gobblets[i].color = self.right_color
                                     #print(self.left_gobblets[i].color)
+                                    if self.right_gobblets[i].under != None and self.right_gobblets[i].under.player != self.right_gobblets[i].player:
+                                            temp = self.board.copy()
+                                            self.board[self.right_gobblets[i].board_position] = self.right_gobblets[i].under                                       
+                                            if self._check_for_winner() == self.right_gobblets[i].under.player:
+                                                self.set_error("*Watchout black gobblet underneath")                                        
+                                                self.board = temp.copy()
+                                       
                                 break        
                             else:
                                 if self.left_gobblets[i].color == self.left_color or self.right_gobblets[i].color == self.right_color:
-                                        print("color")
+                                        #print("color")
                                         self.clicked = True
                                            
-                    print(self.clicked)   
+                    #print(self.clicked)   
                     if(100 < mouseX < 500 and mouseY < 400):
-                            print("d5lt")
+                            #print("d5lt")
                             for i in range(12):
                                 if(self.current_player == 0):
                                     if (self.left_gobblets[i].is_on_top == True and self.left_gobblets[i].color == self.left_color and self.clicked):
-                                        print("d5lt2")
+                                        #print("d5lt2")
                                         clicked_row = mouseY // 100
                                         clicked_col = (mouseX-100) // 100
-                                        print(clicked_row,clicked_col)
+                                        #print(clicked_row,clicked_col)
                                         if (self.left_gobblets[i].position[1]//100 == clicked_row and (self.left_gobblets[i].position[0]-100)//100 == clicked_col):
-                                            print("Can't move in the same position")
+                                            #print("Can't move in the same position")
                                             self.set_error("*Can't move in the same position")
                                         else:
                                             self.on_button_click(clicked_row, clicked_col) 
                                             break
                                 elif(self.current_player == 1):
                                     if (self.right_gobblets[i].is_on_top == True and self.right_gobblets[i].color == self.right_color and self.clicked):
-                                        print("d5lt3")
+                                        #print("d5lt3")
                                         clicked_row = mouseY // 100
                                         clicked_col = (mouseX-100) // 100
-                                        print(clicked_row,clicked_col)
+                                        #print(clicked_row,clicked_col)
                                         if (self.right_gobblets[i].position[1]//100 == clicked_row and (self.right_gobblets[i].position[0]-100)//100 == clicked_col):
-                                            print("Can't move in the same position")
+                                            #print("Can't move in the same position")
                                             self.set_error("*Can't move in the same position")
                                         else:
                                             self.on_button_click(clicked_row, clicked_col) 
