@@ -108,6 +108,7 @@ class PlayervsPlayer:
         if text and text2:
             if text == text2:
                 messagebox.showinfo("Same Name", 'Player names cannot be identical.')
+                
             elif len(text) <= 12:
                 if len(text2) <= 12:
                     self.root.destroy()
@@ -273,6 +274,10 @@ class Gobbler_piece:
         self.color = color
         self.radius = radius
         self.position = position
+        self.prev_position = None
+        self.prev_prev_position = None
+        self.prev_prev_prev_position = None
+
         self.under = None
 
     def draw(self, screen):
@@ -284,6 +289,8 @@ class Game:
     def __init__(self, game_details):
         self.game_details = game_details
         pygame.init()
+         # Main game loop
+        self.running = True
         #print(game_details.game_mode, game_details.player1_name , game_details.player2_name, game_details.player1_color, game_details.level)
         self.left_color = (243, 101, 35)
         self.right_color = (19, 195, 244)
@@ -299,10 +306,16 @@ class Game:
         self.error = ""
         self.efont = pygame.font.Font(None, 16)
         self.error_txt = self.efont.render(self.error , True, (255,0,0))  # red color
-
+        
         self.pfont = pygame.font.Font(None, 36)  # Use a default font
         self.clock = pygame.time.Clock()
 
+        #repeatitions for draw condition
+        self.reps = 0
+        self.left_rep = 0
+        self.left_rep_indx = None
+        self.extra_moves = 0 
+        
         # Create a text surface
         #print(self.game_details.player1_color)
         self.nextTurn = self.game_details.player1_name if self.game_details.player1_color == (0,0,0) else self.game_details.player2_name
@@ -364,7 +377,15 @@ class Game:
                         if self.board[index] == " ":
                                 self.clicked = False
                                 self.left_gobblets[i].board_position = index
+                                if self.left_gobblets[i].position != None:
+                                    if self.left_gobblets[i].prev_position != None:
+                                        if self.left_gobblets[i].prev_prev_position != None:
+                                            self.left_gobblets[i].prev_prev_prev_position = self.left_gobblets[i].prev_prev_position
+                                        self.left_gobblets[i].prev_prev_position =  self.left_gobblets[i].prev_position
+                                    self.left_gobblets[i].prev_position =  self.left_gobblets[i].position 
+                                
                                 self.left_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.Draw(self.left_gobblets[i])
                                 self.left_gobblets[i].color = (0,0,0) 
                                 if(self.left_gobblets[i].under != None):
                                     self.left_gobblets[i].under.is_on_top = True
@@ -378,6 +399,13 @@ class Game:
                             if self.board[index].size > self.left_gobblets[i].size:
                                     self.clicked = False
                                     self.left_gobblets[i].board_position = index
+                                    if self.left_gobblets[i].position != None:
+                                        if self.left_gobblets[i].prev_position != None:
+                                            if self.left_gobblets[i].prev_prev_position != None:
+                                                self.left_gobblets[i].prev_prev_prev_position = self.left_gobblets[i].prev_prev_position
+                                            self.left_gobblets[i].prev_prev_position =  self.left_gobblets[i].prev_position
+                                        self.left_gobblets[i].prev_position =  self.left_gobblets[i].position
+                                    
                                     self.left_gobblets[i].position = (150+ 100*col,50+ 100*row)
                                     self.left_gobblets[i].color = (0,0,0) 
                                     if(self.left_gobblets[i].under != None):
@@ -405,7 +433,14 @@ class Game:
                             if self.board[index] == " ":
                                 self.clicked = False
                                 self.left_gobblets[i].board_position = index
+                                if self.left_gobblets[i].position != None:
+                                    if self.left_gobblets[i].prev_position != None:
+                                        if self.left_gobblets[i].prev_prev_position != None:
+                                            self.left_gobblets[i].prev_prev_prev_position = self.left_gobblets[i].prev_prev_position
+                                        self.left_gobblets[i].prev_prev_position =  self.left_gobblets[i].prev_position
+                                    self.left_gobblets[i].prev_position =  self.left_gobblets[i].position
                                 self.left_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.Draw(self.left_gobblets[i])
                                 self.left_gobblets[i].color = (0,0,0) 
                                 if(self.left_gobblets[i].under != None):
                                     self.left_gobblets[i].under.is_on_top = True
@@ -418,7 +453,14 @@ class Game:
                             elif self.board[index].size > self.left_gobblets[i].size:
                                     self.clicked = False
                                     self.left_gobblets[i].board_position = index
+                                    if self.left_gobblets[i].position != None:
+                                        if self.left_gobblets[i].prev_position != None:
+                                            if self.left_gobblets[i].prev_prev_position != None:
+                                                self.left_gobblets[i].prev_prev_prev_position = self.left_gobblets[i].prev_prev_position
+                                            self.left_gobblets[i].prev_prev_position =  self.left_gobblets[i].prev_position
+                                        self.left_gobblets[i].prev_position =  self.left_gobblets[i].position
                                     self.left_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                    self.Draw(self.left_gobblets[i])
                                     self.left_gobblets[i].color = (0,0,0) 
                                     if(self.left_gobblets[i].under != None):
                                         self.left_gobblets[i].under.is_on_top = True
@@ -449,8 +491,13 @@ class Game:
                     if self.right_gobblets[i].board_position == None:
                         if self.board[index] == " ":
                                 self.clicked = False
-                                self.right_gobblets[i].board_position = index 
+                                self.right_gobblets[i].board_position = index
+                                if self.right_gobblets[i].position != None:
+                                    if self.right_gobblets[i].prev_position != None:
+                                        self.right_gobblets[i].prev_prev_position =  self.right_gobblets[i].prev_position
+                                    self.right_gobblets[i].prev_position =  self.right_gobblets[i].position 
                                 self.right_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.Draw(self.right_gobblets[i])
                                 self.right_gobblets[i].color = (255,255,255) 
                                 if(self.right_gobblets[i].under != None):
                                     self.right_gobblets[i].under.is_on_top = True
@@ -463,8 +510,13 @@ class Game:
                         elif self.check_possible_win() == True:
                             if self.board[index].size > self.right_gobblets[i].size:
                                 self.clicked = False
-                                self.right_gobblets[i].board_position = index 
+                                self.right_gobblets[i].board_position = index
+                                if self.right_gobblets[i].position != None:
+                                    if self.right_gobblets[i].prev_position != None:
+                                        self.right_gobblets[i].prev_prev_position =  self.right_gobblets[i].prev_position
+                                    self.right_gobblets[i].prev_position =  self.right_gobblets[i].position  
                                 self.right_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.Draw(self.right_gobblets[i])
                                 self.right_gobblets[i].color = (255,255,255) 
                                 if(self.right_gobblets[i].under != None):
                                     self.right_gobblets[i].under.is_on_top = True
@@ -489,8 +541,13 @@ class Game:
                     else:
                         if self.board[index] == " ":
                                 self.clicked = False
-                                self.right_gobblets[i].board_position = index 
+                                self.right_gobblets[i].board_position = index
+                                if self.right_gobblets[i].position != None:
+                                    if self.right_gobblets[i].prev_position != None:
+                                        self.right_gobblets[i].prev_prev_position =  self.right_gobblets[i].prev_position
+                                    self.right_gobblets[i].prev_position =  self.right_gobblets[i].position  
                                 self.right_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.Draw(self.right_gobblets[i])
                                 self.right_gobblets[i].color = (255,255,255) 
                                 if(self.right_gobblets[i].under != None):
                                     self.right_gobblets[i].under.is_on_top = True
@@ -502,8 +559,13 @@ class Game:
                                 break
                         elif self.board[index].size > self.right_gobblets[i].size:
                                 self.clicked = False
-                                self.right_gobblets[i].board_position = index 
+                                self.right_gobblets[i].board_position = index
+                                if self.right_gobblets[i].position != None:
+                                    if self.right_gobblets[i].prev_position != None:
+                                        self.right_gobblets[i].prev_prev_position =  self.right_gobblets[i].prev_position
+                                    self.right_gobblets[i].prev_position =  self.right_gobblets[i].position  
                                 self.right_gobblets[i].position = (150+ 100*col,50+ 100*row)
+                                self.Draw(self.right_gobblets[i])
                                 self.right_gobblets[i].color = (255,255,255) 
                                 if(self.right_gobblets[i].under != None):
                                     self.right_gobblets[i].under.is_on_top = True
@@ -527,6 +589,12 @@ class Game:
             #print(f"Player {me} wins!")
             self.Celebrate()
 
+
+            # elif " " not in self.board:
+            #     print("It's a tie!")
+            #     self.reset_game()
+            # else:
+            #     self.switch_player()
     def check_possible_win(self) -> bool:
         """
         checks if there is a possible win next turn
@@ -614,7 +682,32 @@ class Game:
             self.fade_duration = 2000  # 2 seconds
             self.error_txt = self.efont.render(self.error , True, (255,0,0))  # red color
             self.error_txt.set_alpha(255)
-    
+    def Draw(self,g):
+        if g.prev_prev_position == g.position:
+            if self.current_player == 0:
+                if g.prev_prev_position == g.position:
+                    #print(self.left_rep_indx != g.piece_no , g.prev_prev_prev_position != g.prev_position)
+                    print(self.extra_moves)
+                    if self.left_rep_indx != g.piece_no or g.prev_prev_prev_position != g.prev_position:
+                        print("rep left")
+                        self.left_rep = 1
+                        self.left_rep_indx = g.piece_no
+                        self.extra_moves += 1  
+                        
+                    elif self.left_rep_indx == g.piece_no:
+                        print("rep nfs el left")
+                        self.left_rep = 0 
+                        print(self.extra_moves%3 == 2)
+                        if self.extra_moves%3 == 2:
+                            self.left_rep_indx = None
+                        self.extra_moves += 1    
+            else:
+                if self.left_rep == 1:
+                    print("full rep")
+                    self.reps +=1 
+                    self.left_rep = 0
+                        
+        
     def switch_player(self):
         if self.current_player == 1:
             self.current_player = 0
@@ -636,12 +729,11 @@ class Game:
 
     def reset_game(self):
         pygame.quit()
-        ChooseWindow().run()
-        quit()
-        #self.current_player = "X"
-        #self.board = [" " for _ in range(16)]
-    # Main game loop
-    # running = True
+        Game(self.game_details).run()
+        # pygame.quit()
+        # ChooseWindow().run()
+        # quit()
+   
     
     def check_clicked(self):
         for i in range(12):
@@ -675,6 +767,7 @@ class Game:
             if (self.game_details.player2_color == (0,0,0) and self.current_player == 0) or (self.game_details.player2_color == (255,255,255) and self.current_player == 1):
                 if(self.game_details.level == "Easy"):
                     bot = Easy_Bot(self.current_player,self)
+                    
                 elif(self.game_details.level == "Hard"):
                     bot = Medium_Bot(self.current_player,self)
                 elif(self.game_details.level == "Impossible"):
@@ -704,7 +797,7 @@ class Game:
                                         #print("d5lt3")
                                         clicked_row = chosen_index //4
                                         clicked_col = chosen_index %4
-                                        # print(clicked_row,clicked_col)
+                                        print(clicked_row,clicked_col)
                                         if (self.right_gobblets[i].position[1]//100 == clicked_row and (self.right_gobblets[i].position[0]-100)//100 == clicked_col):
                                             #print("Can't move in the same position")
                                             #self.set_error("*Can't move in the same position")
@@ -715,13 +808,13 @@ class Game:
     def run(self):
         self.generate_gobblets()
         self.Bot_turn()
-        while True:
+        while self.running:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     pygame.quit()
                     ChooseWindow().run()
                     quit()
-                elif self.win_win and event.type == MOUSEBUTTONDOWN:
+                elif (self.win_win or self.reps == 3) and event.type == MOUSEBUTTONDOWN:
                     mouseX, mouseY = event.pos
                     #print(self.play_again_button.center[1], mouseY ,self.play_again_button.center[0], mouseX)
                     if  200 <= mouseX <= 380 and 290 <= mouseY <= 320:
@@ -844,7 +937,19 @@ class Game:
                 self.play_again_text_rect = self.play_again_text.get_rect(center=self.play_again_button.center)
                 self.popup_screen.blit(self.play_again_text, self.play_again_text_rect)
                 self.screen.blit(self.popup_screen, self.popup_rect)
-            
+                        
+            if self.reps == 3:
+                self.popup_message = self.popup_font.render("3 Repeatitions, Draw! :( ", True, (0, 255, 255))
+                pygame.draw.rect(self.screen, (100, 100, 100), self.popup_rect)
+                self.popup_screen.fill((0, 0, 0))
+                self.popup_screen.blit(self.popup_message, self.popup_message.get_rect(center=(200, 200 // 3)))
+                pygame.draw.rect(self.popup_screen, (50, 50, 200), self.play_again_button)
+                self.play_again_text = self.popup_font.render("Play Again", True, (255, 255, 255))
+                self.play_again_text_rect = self.play_again_text.get_rect(center=self.play_again_button.center)
+                self.popup_screen.blit(self.play_again_text, self.play_again_text_rect)
+                self.screen.blit(self.popup_screen, self.popup_rect)
+
+
             pygame.display.flip()
             self.clock.tick(60)
 
