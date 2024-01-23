@@ -901,7 +901,11 @@ class Game:
                 self.text_surface= self.pfont.render(self.nextTurn + "'s Turn", True, self.text_color)
             if self.game_details.game_mode == "pvc":
                 if (self.game_details.player2_color == (0,0,0) and self.current_player == 0) or (self.game_details.player2_color == (255,255,255) and self.current_player == 1):   
-                        self.Bot_turn()
+                    pygame.display.flip()
+                    self.fade_start_time =pygame.time.get_ticks()
+                    self.fade_duration = 2000
+                    self.Done = True
+                        
             elif self.game_details.game_mode == "cvc" and not self.stop:
                 pygame.display.flip()
                 self.fade_start_time =pygame.time.get_ticks()
@@ -1189,7 +1193,7 @@ class Game:
                 self.popup_screen.blit(self.play_again_text, self.play_again_text_rect)
                 self.screen.blit(self.popup_screen, self.popup_rect)
 
-            if self.game_details.game_mode == "cvc" and self.Done:
+            if self.game_details.game_mode == "cvc" and self.Done or (self.game_details.game_mode == "pvc" and (self.game_details.player2_color == (0,0,0) and self.current_player == 0) or (self.game_details.player2_color == (255,255,255) and self.current_player == 1)):
                 if pygame.time.get_ticks() - self.fade_start_time >= self.fade_duration:   
                     self.Done = False
                     self.Bot_turn()   
