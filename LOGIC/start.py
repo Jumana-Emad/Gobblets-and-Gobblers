@@ -8,21 +8,18 @@ while True:
 
     # create players
     players = []
-    # for player_number in range(2):
-    #     txt = f'Enter a name for player {player_number}. Enter 1 for Easy difficulty, 2 for Medium, 3 for Hard'
-    #     difficulty = input(txt)
-    #     if difficulty == '1':
-    #         players.append(Easy_Bot(player_number, 'Bot', game))
-    #     elif difficulty == '2':
-    #         players.append(Medium_Bot(player_number, 'Bot', game))
-    #     elif difficulty == '3':
-    #         players.append(Hard_Bot(player_number, 'Bot', game))
-    #     else:
-    #         name = difficulty
-    #         players.append(Human(player_number, name, game))
-
-    players.append(Human(0, 'jon', game)) 
-    players.append(Hard_Bot(1, 'Bot', game))           
+    txt = f'Enter your name'
+    name = input(txt)
+    players.append(Human(0, name, game))
+    txt = f'Enter 1 for Easy difficulty, 2 for Medium, 3 for Hard'
+    difficulty = input(txt)
+    if difficulty == '1':
+        players.append(Easy_Bot(1, 'Bot', game))
+    elif difficulty == '2':
+        players.append(Medium_Bot(1, 'Bot', game))
+    elif difficulty == '3':
+        players.append(Hard_Bot(1, 'Bot', game))
+         
     i = 0
     # start a match
     while winner is None:
@@ -32,6 +29,8 @@ while True:
         # if game.current_player_idx == 1:
         #     current_player.play()
         while winner is None:
+            if i == 1:
+                brpt = 0
             selected_gobbler_size = current_player.select_gobbler()
             success = game.select_gobbler_object(selected_gobbler_size)
             if success:
@@ -45,9 +44,9 @@ while True:
         # play gobbler
         # print(game.Draw_board())
         while winner is None:
+
             board_position = current_player.select_board_position()
-            if i == 4:
-                brpt = 0
+
             i+=1
             success, winner = game.select_gobbler_position(board_position, selected_gobbler_size)
             if success:

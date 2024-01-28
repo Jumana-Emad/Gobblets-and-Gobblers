@@ -17,6 +17,7 @@ class Gobbler_piece:
         
         self.board_position = None  # integers 0-15 or None
         self.board_position_previous = None # so that it can be placed back where it came from
+        self.board_previous_positions = [] # A list that saves the previous positions of a goblet
         self.under_on_board =None
         if(self.piece_size ==3 ):
             self.is_on_top=True
@@ -81,7 +82,8 @@ class Game:
             #  self.board[self.selected_gobbler_piece.board_position].is_on_top=False
          else :self.board[self.selected_gobbler_piece.board_position]=None
           
-        self.selected_gobbler_piece.board_position_previous = self.selected_gobbler_piece.board_position
+        # self.selected_gobbler_piece.board_position_previous = self.selected_gobbler_piece.board_position
+        self.selected_gobbler_piece.board_previous_positions.append(self.selected_gobbler_piece.board_position)
         self.selected_gobbler_piece.board_position = None
         self._update_on_top()
         return True
@@ -94,8 +96,10 @@ class Game:
         #      return False
         if not self.selected_gobbler_piece:
             return False, None
-        elif self.selected_gobbler_piece.board_position_previous == board_position :
+        elif self.selected_gobbler_piece.board_previous_positions[-1] == board_position :
             return False, None
+        # elif self.selected_gobbler_piece.board_position_previous == board_position :
+        #     return False, None
         elif board_position is None:
             return False, None
         
@@ -235,7 +239,8 @@ class Game:
         return r3
     def get_list_selected_gobblers(self,gobblers)->list:
         r1 = [g for g in gobblers if g.is_on_top and g.player == self.current_player_idx and g.board_position is not None ]
-        r2 = [g for g in gobblers if g.board_position is None and g.board_position_previous is None and g.player == self.current_player_idx and g.is_on_top]
+        # r2 = [g for g in gobblers if g.board_position is None and g.board_position_previous is None and g.player == self.current_player_idx and g.is_on_top]
+        r2 = [g for g in gobblers if g.board_position is None and (not g.board_previous_positions or g.board_previous_positions[-1] is None) and g.player == self.current_player_idx and g.is_on_top]
         r3=r1+r2
         return r3
     def winner_case(self)->int:
@@ -273,7 +278,8 @@ class Game:
             best_score = float('-inf')
             for r in self.get_list_selected_gobblers(self.gobblers):
                 max_gobbler=r.piece_no
-                for move in self.get_possible_moves(self.board, self.gobblers,r.piece_size,r.board_position_previous):
+                # for move in self.get_possible_moves(self.board, self.gobblers,r.piece_size,r.board_position_previous):
+                for move in self.get_possible_moves(self.board, self.gobblers,r.piece_size,r.board_previous_positions):
                     max_move=move  
                     if move is None:
                         continue  
@@ -294,11 +300,12 @@ class Game:
                         self.board[r.board_position] = r.under_on_board
                     r.under_on_board = None
 
-                    r.board_position = r.board_position_previous
+                    # r.board_position = r.board_position_previous
+                    r.board_position = r.board_previous_positions[-1]
                     if r.board_position is not None:
                         r.under_on_board = self.board[r.board_position]
                         self.board[r.board_position] = r
-
+                    r.board_previous_positions.pop()
                     self._update_on_top()
                     if (score > best_score):
                         bestGobbler = r
@@ -322,7 +329,8 @@ class Game:
                     # print(self.get_possible_moves(self.board, self.gobblers,r.piece_no,r.board_position_previous))
                     # print(r.piece_no)
                     # print(r.player)
-                    for move in self.get_possible_moves(self.board, self.gobblers,r.piece_size,r.board_position_previous):
+                    # for move in self.get_possible_moves(self.board, self.gobblers,r.piece_size,r.board_position_previous):
+                    for move in self.get_possible_moves(self.board, self.gobblers,r.piece_size,r.board_previous_positions):
                         if move is None:
                             continue
                         if max_move ==0 and max_gobbler == 4 and r.piece_no==12 and move == 1:
@@ -346,10 +354,12 @@ class Game:
                             self.board[r.board_position] = r.under_on_board
                         r.under_on_board = None
                         # self.board[move].pop()
-                        r.board_position = r.board_position_previous
+                        # r.board_position = r.board_position_previous
+                        r.board_position = r.board_previous_positions[-1]
                         if r.board_position is not None:
                             r.under_on_board = self.board[r.board_position]
                             self.board[r.board_position] = r
+                        r.board_previous_positions.pop()
                         self._update_on_top()
                         if (score < best_score):
                             bestGobbler = r
@@ -363,6 +373,7 @@ class Game:
 
     def minimax(self, board: list, depth: int, isMaximizing: bool,alpha,beta,firstTime=True):
         result = self.evaluate_function()
+        # result = self.winner_case()
         self.winner = None
         bestGobbler = None
         bestPosition = None
