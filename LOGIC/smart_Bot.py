@@ -43,7 +43,7 @@ class Medium_Bot(Player):
     def select_gobbler(self):
         alpha=float('-inf')
         beta=float('inf') 
-        result, self.gobbler, self.position,alpha=self.game.minimax(self.game.board,2,True,alpha,beta,True)
+        result, self.gobbler, self.position,alpha=self.game.minimax(self.game.board,3,True,alpha,beta,True)
         # print(self.game.Draw_board())
         print("Gobbler: ", self.gobbler)
         return self.gobbler.piece_no
@@ -60,7 +60,7 @@ class Hard_Bot(Player):
     def select_gobbler(self):
         alpha=float('-inf')
         beta=float('inf') 
-        result, self.gobbler, self.position,alpha=self.game.minimax(self.game.board,3,True,alpha,beta,True)
+        result, self.gobbler, self.position,alpha=self.game.minimax(self.game.board,2,True,alpha,beta,True)
         # print(self.game.Draw_board())
         print("Gobbler: ", self.gobbler)
         return self.gobbler.piece_no
