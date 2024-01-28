@@ -421,6 +421,8 @@ class Game:
         self.left_rep = 0
         self.left_rep_indx = None
         self.extra_moves = 0 
+        self.Draw_surface = self.efont.render("Declare Draw", True, (255,0,255))
+
         
         # Create a text surface
         #print(self.game_details.player1_color)
@@ -434,6 +436,7 @@ class Game:
         popup_width, popup_height = 400, 200
         self.popup_screen = pygame.Surface((popup_width, popup_height))
         self.popup_rect = self.popup_screen.get_rect(center=(600 // 2, 500 // 2))
+
 
         # Set up fonts and text for the pop-up window
         self.popup_font = pygame.font.Font(None, 28)
@@ -1061,6 +1064,10 @@ class Game:
                         self.win_win = False    
                 elif event.type == MOUSEBUTTONDOWN:
                     mouseX, mouseY = event.pos
+                    print (mouseX, mouseY)
+                    if 452 <= mouseY <= 470 and  495 <= mouseX <= 540 and self.game_details.game_mode == "pvp":
+                        self.reps = 3
+                        print("yay")
                     #print(event.pos)
                     #print(self.clicked)
                     self.check_clicked()
@@ -1170,6 +1177,9 @@ class Game:
 
             self.screen.blit(self.error_txt,(20,420))        
             self.screen.blit(self.text_surface, (180, 450))
+            if self.game_details.game_mode == "pvp":
+                self.screen.blit(self.Draw_surface, (500, 455))
+            
 
             # Draw the pop-up window if needed
             if self.win_win:
@@ -1183,7 +1193,8 @@ class Game:
                 self.screen.blit(self.popup_screen, self.popup_rect)
                         
             if self.reps == 3:
-                self.popup_message = self.popup_font.render("3 Repeatitions, Draw! :( ", True, (0, 255, 255))
+                self.stop = True
+                self.popup_message = self.popup_font.render("Draw! :( ", True, (0, 255, 255))
                 pygame.draw.rect(self.screen, (100, 100, 100), self.popup_rect)
                 self.popup_screen.fill((0, 0, 0))
                 self.popup_screen.blit(self.popup_message, self.popup_message.get_rect(center=(200, 200 // 3)))
