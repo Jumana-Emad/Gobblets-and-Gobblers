@@ -1,3 +1,7 @@
+#IMPORTANT NOTE:
+At the moment , The project is divided into 2, one gui appthat works perfectly for pvp and easy level for pvc and cvc  and a console project that works great for medium and hard level (minimax with evaluation)
+(Faced issues in integration of codes, so missed th deadline)
+#[Demos:] (https://drive.google.com/drive/folders/1-YnPd8JTUU7gGl1X-OGDgbKjkFFQBfbd)
 # Gobblets-and-Gobblers
 This is a game that is part of our AI course at Senior year at ASU FOE 
 # Gobblet AI Player
